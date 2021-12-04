@@ -32,12 +32,11 @@ def filter_bstrings(bstrings, indices, string_index, filter_func):
     
     Returns the last string remaining after all other strings have been filtered.
     """
-    # Base cases: either only one index left, or we've reached the last string index.
+    # Base case: only one index left.
     if len(indices) == 1:
         return bstrings[indices[0]]
-    elif string_index == len(bstrings[0]):
-        assert len(indices) == 1
-        return bstrings[indices[0]]
+    elif not indices or string_index > len(bstrings[0]):
+        raise ValueError("No feasible solution.")
 
     indices_with_one = []
     indices_with_zero = []
