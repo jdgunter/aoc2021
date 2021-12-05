@@ -44,7 +44,9 @@ def parse_line_segment(line_seg_string):
         if start.x < end.x:
             return LineSegment("east", start, end)
         return LineSegment("east", end, start)
-    # 4 diagonal cases: oriented northwest, northeast, southwest, southeast.
+    # 4 diagonal cases: oriented northeast, southwest, southeast, northwest.
+    # However southwest and northwest can be reduced to the other cases by
+    # reversing the start and end points.
     if start.x < end.x and start.y < end.y:
         return LineSegment("northeast", start, end)
     elif start.x > end.x and start.y > end.y:
