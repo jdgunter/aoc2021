@@ -1,4 +1,5 @@
 import sys
+import time
 
 
 def parse_lines(lines):
@@ -88,8 +89,10 @@ def decode_output_values(lines):
 def main():
     """Advent of Code day 8."""
     lines = parse_lines(sys.stdin.readlines())
+    start_time = time.time()
     print(count_1_4_7_8(lines))
     print(sum(decode_output_values(lines)))
+    print(f"Elapsed (no IO): {1000 * (time.time() - start_time):.3f}ms")
 
 
 main()
