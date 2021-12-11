@@ -1,25 +1,19 @@
 import sys
+import time
 from copy import deepcopy
 
 
 class Grid:
 
-    def __init__(self, grid, n_rows=None, n_cols=None):
-        """Initialize a grid."""
+    def __init__(self, grid):
         self.grid = grid
-        self.n_rows = n_rows
-        if self.n_rows is None:
-            self.n_rows = len(grid)
-        self.n_cols = n_cols
-        if self.n_cols is None:
-            self.n_cols = 0 if not grid else len(grid[0])
+        self.n_rows = len(grid)
+        self.n_cols = 0 if not grid else len(grid[0])
     
     def get(self, i, j):
-        """Get grid[i][j]."""
         return self.grid[i][j]
     
     def set(self, i, j, value):
-        """Set grid[i][j]."""
         self.grid[i][j] = value
     
     def __len__(self):
@@ -30,21 +24,18 @@ class Grid:
         self.grid[i][j] += 1
 
     def __iter__(self):
-        """Get an iterator over the items in the grid."""
         for i, row in enumerate(self.grid):
             for j, value in enumerate(row):
                 yield i, j, value
     
     def __repr__(self):
-        """Get a representation of the grid."""
         return "".join(["".join(str(energy) for energy in row) + "\n" for row in self.grid])
     
     def copy(self):
-        """Create a copy of this grid."""
-        return Grid(deepcopy(self.grid), n_rows=self.n_rows, n_cols=self.n_cols)
+        return Grid(deepcopy(self.grid))
     
     def neighborhood(self, i, j):
-        """Get the neighborhood indices of grid[i][j]."""
+        """Get the indices in the neighborhood of grid[i][j]."""
         i_deltas = [0]
         j_deltas = [0]
         if i > 0:
@@ -62,8 +53,8 @@ class Grid:
                     continue
                 yield i + i_delta, j + j_delta
     
-    def flash_deltas(self, i, j, deltas):
-        """Store the indices flashed by grid[i][j]."""
+    def update_flash_deltas(self, i, j, deltas):
+        """Update the number of times indices in the neighborhood of grid[i][j] have been flashed."""
         for k, l in self.neighborhood(i, j):
             deltas[k][l] += 1
         return deltas
@@ -80,12 +71,12 @@ def step(grid):
         grid.incr(i, j)
     check_flashes = True
     already_flashed = [[False for _ in range(grid.n_cols)] for _ in range(grid.n_rows)]
+    energy_deltas = [[0 for _ in range(grid.n_cols)] for _ in range(grid.n_rows)]
     while check_flashes:
         check_flashes = False
-        energy_deltas = [[0 for _ in range(grid.n_cols)] for _ in range(grid.n_rows)]
         for i, j, energy in grid:
             if energy > 9:
-                grid.flash_deltas(i, j, energy_deltas)
+                grid.update_flash_deltas(i, j, energy_deltas)
                 grid.set(i, j, 0)
                 already_flashed[i][j] = True
                 flash_count += 1
@@ -94,6 +85,7 @@ def step(grid):
             if not already_flashed[i][j]:
                 new_energy = grid.get(i, j) + energy_deltas[i][j]
                 grid.set(i, j, new_energy)
+            energy_deltas[i][j] = 0
     return flash_count
 
 
@@ -110,8 +102,7 @@ def part2(grid):
     """Part 2 of day 11."""
     grid = grid.copy()
     step_number = 0
-    all_flashed = False
-    while not all_flashed:
+    while True:
         step_number += 1
         if step(grid) == len(grid):
             return step_number
@@ -120,9 +111,11 @@ def part2(grid):
 def main():
     """Advent of Code day 11."""
     lines = [[int(n) for n in line[:-1]] for line in sys.stdin.readlines()]
+    start_time = time.time()
     grid = Grid(lines)
     print(part1(grid))
     print(part2(grid))
+    print(f"Elapsed (no IO): {1000 * (time.time() - start_time)}ms")
 
 
 main()
