@@ -1,5 +1,6 @@
 import sys
 
+
 def parse_fold(line):
     """Parse a fold instruction."""
     words, number = line.split("=")
@@ -51,10 +52,8 @@ def perform_fold_y(grid, fold_index):
     folded_section = []
     for top_line, bottom_line in zip(reversed(top_half), bottom_half):
         folded_section.append(
-            [top_val or bottom_val for top_val, bottom_val in zip(top_line, bottom_line)]
-        )
+            [top_val or bottom_val for top_val, bottom_val in zip(top_line, bottom_line)])
     lowest_unfolded_line = fold_index - len(folded_section)
-
     grid[lowest_unfolded_line:fold_index] = reversed(folded_section)
     del grid[fold_index:]
     return grid
