@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from dataclasses import dataclass
 from math import prod
-from typing import Any, List
+from typing import Any, List, Union
 
 # type IDs
 SUM = 0
@@ -19,19 +19,7 @@ EQUAL_TO = 7
 class Packet:
     version: int
     type_id: int
-    contents: Any  # Value | Operator
-
-
-@dataclass
-class Value:
-    value: int
-
-
-@dataclass
-class Operator:
-    length_type_id: int
-    length: int
-    subpackets: List[Packet]
+    contents: Union[int, List["Packet"]]
 
 
 def decode(hex_string):
@@ -56,7 +44,7 @@ def parse_value(binary_code):
         bits.extend(window[1:])
         window_start_index += 5
     unparsed_code = binary_code[window_start_index:]
-    return Value(bin_to_int(bits)), unparsed_code
+    return bin_to_int(bits), unparsed_code
 
 
 def parse_operator(binary_code):
@@ -77,7 +65,7 @@ def parse_operator(binary_code):
             packet, other_binary_code = parse_packet(other_binary_code)
             subpackets.append(packet)
         unparsed_code = binary_code[16+number_of_subpacket_bits:]
-    return Operator(length_type_id, len(subpackets), subpackets), unparsed_code
+    return subpackets, unparsed_code
 
 
 def parse_packet(binary_code):
@@ -96,14 +84,14 @@ def compute_version_sum(packet):
     """Compute the sum of the packet versions."""
     if packet.type_id == LITERAL_VALUE:
         return packet.version
-    return packet.version + sum(compute_version_sum(subpacket) for subpacket in packet.contents.subpackets) 
+    return packet.version + sum(compute_version_sum(subpacket) for subpacket in packet.contents) 
 
 
 def evaluate(packet):
     """Evaluate the expression represented by a packet."""
     if packet.type_id == LITERAL_VALUE:
-        return packet.contents.value
-    subpackets = packet.contents.subpackets
+        return packet.contents
+    subpackets = packet.contents
     apply_to_subpackets = lambda func: func(evaluate(subpacket) for subpacket in subpackets)
     if packet.type_id == SUM:
         return apply_to_subpackets(sum) 
